@@ -1,4 +1,4 @@
-# Catppuccin Mocha Terminal
+# 🌸 Catppuccin Mocha Terminal
 
 Unified Catppuccin Mocha theme setup for Windows Terminal, Windows PowerShell, PowerShell 7, and Command Prompt (cmd.exe) with Fastfetch, Oh My Posh, and Clink.
 
@@ -15,7 +15,7 @@ Unified Catppuccin Mocha theme setup for Windows Terminal, Windows PowerShell, P
 
 ---
 
-## Requirements
+## 📋 Requirements
 
 - **Operating System:** Windows 10 (version 1809 or higher) or Windows 11
 - **Terminal:** [Windows Terminal](https://aka.ms/terminal) (recommended)
@@ -29,9 +29,9 @@ The installer will automatically install and configure:
 
 ---
 
-## Installation
+## ✨ Installation
 
-### Method 1: Automatic One-Liner (Recommended)
+### ⚡ Method 1: Automatic One-Liner (Recommended)
 
 Open **PowerShell** and run the following command:
 
@@ -39,7 +39,7 @@ Open **PowerShell** and run the following command:
 irm https://raw.githubusercontent.com/krambovic/catppuccin-terminal/main/install.ps1 | iex
 ```
 
-### Method 2: Manual Clone
+### 📦 Method 2: Manual Clone
 
 Clone the repository and run the installer script locally:
 
@@ -49,7 +49,7 @@ cd catppuccin-terminal
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-### After Installation
+### 💫 After Installation
 
 1. Close all active Windows Terminal, PowerShell, and Command Prompt windows.
 2. Launch a new Windows Terminal window.
@@ -57,7 +57,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 ---
 
-## Uninstallation
+## 🧹 Uninstallation
 
 To revert all changes, restore your previous profiles, and clean up the configuration files:
 
@@ -75,6 +75,6 @@ Original configuration backups are preserved in `~/catppuccin-terminal-backups/`
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
