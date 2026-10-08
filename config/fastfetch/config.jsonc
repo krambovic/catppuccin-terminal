@@ -1,0 +1,100 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/wiki/Configuration",
+  "logo": {
+    "type": "file",
+    "source": "C:/Users/krambovic/.config/fastfetch/ascii/anime-girl-1.txt",
+    "color": {
+      "1": "#F5E0DC",
+      "2": "#F2CDCD",
+      "3": "#F5C2E7",
+      "4": "#FAB387",
+      "5": "#F9E2AF",
+      "6": "#A6E3A1",
+      "7": "#94E2D5",
+      "8": "#89DCEB",
+      "9": "#74C7EC"
+    },
+    "padding": {
+      "top": 1,
+      "right": 3
+    }
+  },
+  "display": {
+    "separator": "  \u276f  ",
+    "color": {
+      "title": "#F5C2E7",
+      "output": "#CDD6F4",
+      "separator": "#6C7086"
+    }
+  },
+  "modules": [
+    "break",
+    {
+      "type": "title",
+      "color": {
+        "user": "#F5C2E7",
+        "at": "#CDD6F4",
+        "host": "#89DCEB"
+      }
+    },
+    {
+      "type": "separator",
+      "string": "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+    },
+    {
+      "type": "os",
+      "key": "\ue70f OS",
+      "keyColor": "#89DCEB"
+    },
+    {
+      "type": "kernel",
+      "key": "\uf013 Kernel",
+      "keyColor": "#B4BEFE"
+    },
+    {
+      "type": "uptime",
+      "key": "\udb80\udd50 Uptime",
+      "keyColor": "#F9E2AF"
+    },
+    {
+      "type": "shell",
+      "key": "\uf489 Shell",
+      "keyColor": "#CBA6F7"
+    },
+    {
+      "type": "terminal",
+      "key": "\ue795 Terminal",
+      "keyColor": "#F5C2E7"
+    },
+    {
+      "type": "cpu",
+      "key": "\uf4bc CPU",
+      "keyColor": "#FAB387"
+    },
+    {
+      "type": "gpu",
+      "key": "\udb81\udcae GPU",
+      "keyColor": "#F38BA8"
+    },
+    {
+      "type": "memory",
+      "key": "\uefc5 Memory",
+      "keyColor": "#A6E3A1"
+    },
+    {
+      "type": "disk",
+      "key": "\udb80\udcca Disk",
+      "keyColor": "#94E2D5"
+    },
+    {
+      "type": "wm",
+      "key": "\uf488 WM",
+      "keyColor": "#74C7EC"
+    },
+    "break",
+    {
+      "type": "colors",
+      "symbol": "circle"
+    }
+  ]
+}

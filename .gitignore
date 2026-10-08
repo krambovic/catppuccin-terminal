@@ -1,0 +1,9 @@
+# Backups
+catppuccin-terminal-backups/
+*.bak
+*.tmp
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

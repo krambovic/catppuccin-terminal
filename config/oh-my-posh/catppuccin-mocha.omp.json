@@ -1,0 +1,82 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 4,
+  "final_space": true,
+  "palette": {
+    "crust": "#11111b",
+    "mantle": "#181825",
+    "base": "#1e1e2e",
+    "surface0": "#313244",
+    "surface1": "#45475a",
+    "text": "#cdd6f4",
+    "subtext0": "#a6adc8",
+    "pink": "#f5c2e7",
+    "mauve": "#cba6f7",
+    "red": "#f38ba8",
+    "peach": "#fab387",
+    "yellow": "#f9e2af",
+    "green": "#a6e3a1",
+    "teal": "#94e2d5",
+    "sapphire": "#74c7ec",
+    "blue": "#89b4fa",
+    "lavender": "#b4befe"
+  },
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "os",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4 ",
+          "background": "p:mauve",
+          "foreground": "p:crust",
+          "template": " {{ .Icon }} {{ .UserName }} "
+        },
+        {
+          "type": "path",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4 ",
+          "background": "p:sapphire",
+          "foreground": "p:crust",
+          "options": {
+            "style": "agnoster_short",
+            "home_icon": "~"
+          },
+          "template": " \udb80\udc4b {{ .Path }} "
+        },
+        {
+          "type": "git",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4 ",
+          "background": "p:green",
+          "foreground": "p:crust",
+          "options": {
+            "branch_icon": "\udb80\udea2 ",
+            "fetch_status": true
+          },
+          "template": " \udb80\udea2 {{ .HEAD }}{{ if .Working.Changed }} \udb81\udc4c{{ end }}{{ if .Staging.Changed }} \udb80\ude1e{{ end }} "
+        },
+        {
+          "type": "status",
+          "style": "diamond",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b4 ",
+          "background": "p:red",
+          "foreground": "p:crust",
+          "template": " \udb80\udd59 {{ .Code }} "
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "foreground": "p:mauve",
+          "template": "\u276f "
+        }
+      ]
+    }
+  ]
+}
