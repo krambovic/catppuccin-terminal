@@ -111,16 +111,22 @@ function Install-WingetPackage([string]$WingetPath, [string]$Id) {
 
 function Find-ClinkExe {
     Refresh-PathEnvironment
-    $cmd = Get-Command clink_x64.exe -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
+    $cmds = @('clink_x64.exe', 'clink_arm64.exe', 'clink_x86.exe', 'clink.exe')
+    foreach ($name in $cmds) {
+        $c = Get-Command $name -ErrorAction SilentlyContinue
+        if ($c) { return $c.Source }
+    }
 
-    $candidates = @(
-        'C:\Program Files (x86)\clink\clink_x64.exe',
-        'C:\Program Files\clink\clink_x64.exe',
-        "$env:LOCALAPPDATA\Programs\clink\clink_x64.exe"
+    $candidateDirs = @(
+        'C:\Program Files\clink',
+        'C:\Program Files (x86)\clink',
+        "$env:LOCALAPPDATA\Programs\clink"
     )
-    foreach ($c in $candidates) {
-        if (Test-Path -LiteralPath $c) { return $c }
+    foreach ($dir in $candidateDirs) {
+        foreach ($bin in @('clink_x64.exe', 'clink_arm64.exe', 'clink_x86.exe', 'clink.exe')) {
+            $p = Join-Path $dir $bin
+            if (Test-Path -LiteralPath $p) { return $p }
+        }
     }
     return $null
 }
@@ -453,12 +459,24 @@ end
         Write-WarningMsg 'clink_x64.exe was not found immediately in path. It will activate once terminal restarts.'
     }
 
-    # 8. Configure PowerShell Profiles (5.1 Desktop and 7+ Core)
+    # 8. Configure PowerShell Profiles (5.1 Desktop and 7+ Core, including OneDrive)
     Write-Step 'Configuring PowerShell profiles'
-    $profileTargets = @(
-        (Join-Path $homeDir 'Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1'),
-        (Join-Path $homeDir 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1')
-    )
+    $docDirs = @(
+        (Join-Path $homeDir 'Documents'),
+        [Environment]::GetFolderPath('MyDocuments'),
+        [Environment]::GetFolderPath('Personal')
+    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+
+    $profileTargets = [System.Collections.Generic.List[string]]::new()
+    foreach ($d in $docDirs) {
+        $profileTargets.Add((Join-Path $d 'WindowsPowerShell\Microsoft.PowerShell_profile.ps1'))
+        $profileTargets.Add((Join-Path $d 'PowerShell\Microsoft.PowerShell_profile.ps1'))
+    }
+    if ($PROFILE) {
+        if ($PROFILE.CurrentUserCurrentHost) { $profileTargets.Add($PROFILE.CurrentUserCurrentHost) }
+        if ($PROFILE.CurrentUserAllHosts) { $profileTargets.Add($PROFILE.CurrentUserAllHosts) }
+    }
+    $uniqueProfileTargets = $profileTargets | Select-Object -Unique
 
     $profileBlock = @'
 # >>> Catppuccin Terminal Setup >>>
@@ -484,7 +502,7 @@ if (-not $isNonInteractive -and -not $env:CATPPUCCIN_FASTFETCH_SHOWN) {
 # <<< Catppuccin Terminal Setup <<<
 '@
 
-    foreach ($pPath in $profileTargets) {
+    foreach ($pPath in $uniqueProfileTargets) {
         $pDir = Split-Path -Parent $pPath
         if (-not (Test-Path -LiteralPath $pDir)) {
             New-Item -ItemType Directory -Path $pDir -Force | Out-Null
@@ -497,30 +515,71 @@ if (-not $isNonInteractive -and -not $env:CATPPUCCIN_FASTFETCH_SHOWN) {
         Write-Success "Updated profile: $pPath"
     }
 
-    # 9. Configure Windows Terminal (Font & Bypass flags)
-    Write-Step 'Checking Windows Terminal settings'
+    # 9. Configure Windows Terminal (Theme, Color Scheme, Font & Bypass flags)
+    Write-Step 'Configuring Windows Terminal settings'
     $wtSettingsCandidates = @(
         (Get-ChildItem -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal*\LocalState\settings.json" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName),
         "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
     ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }
+
+    $catppuccinSchemeJson = @'
+        {
+            "name": "Catppuccin Mocha",
+            "background": "#1E1E2E",
+            "foreground": "#CDD6F4",
+            "cursorColor": "#F5E0DC",
+            "selectionBackground": "#45475A",
+            "black": "#45475A",
+            "red": "#F38BA8",
+            "green": "#A6E3A1",
+            "yellow": "#F9E2AF",
+            "blue": "#89B4FA",
+            "purple": "#CBA6F7",
+            "cyan": "#94E2D5",
+            "white": "#BAC2DE",
+            "brightBlack": "#585B70",
+            "brightRed": "#F38BA8",
+            "brightGreen": "#A6E3A1",
+            "brightYellow": "#F9E2AF",
+            "brightBlue": "#89B4FA",
+            "brightPurple": "#F5C2E7",
+            "brightCyan": "#94E2D5",
+            "brightWhite": "#CDD6F4"
+        },
+'@
 
     foreach ($wtFile in $wtSettingsCandidates) {
         try {
             $wtJson = Get-Content -LiteralPath $wtFile -Raw
             $modified = $false
 
-            # Add -NoLogo -ExecutionPolicy Bypass to powershell.exe if not present
-            if ($wtJson -match 'powershell\.exe' -and $wtJson -notmatch 'powershell\.exe -NoLogo') {
-                $wtJson = $wtJson -replace 'powershell\.exe', 'powershell.exe -NoLogo -ExecutionPolicy Bypass'
-                $modified = $true
+            # 1. Inject Catppuccin Mocha color scheme into schemes array if absent
+            if ($wtJson -notmatch '"name"\s*:\s*"Catppuccin Mocha"') {
+                if ($wtJson -match '("schemes"\s*:\s*\[)') {
+                    $wtJson = $wtJson -replace '("schemes"\s*:\s*\[)', "`$1`r`n$catppuccinSchemeJson"
+                    $modified = $true
+                } elseif ($wtJson -match '(\{)') {
+                    $wtJson = $wtJson -replace '(\{)', "`$1`r`n    `"schemes`": [`r`n$catppuccinSchemeJson`r`n    ],"
+                    $modified = $true
+                }
             }
 
-            # Set JetBrainsMono NF font in profiles defaults if not configured
-            if ($wtJson -notmatch 'JetBrainsMono') {
-                if ($wtJson -match '"defaults"\s*:\s*\{') {
+            # 2. Set default colorScheme and font in profiles.defaults
+            if ($wtJson -match '("defaults"\s*:\s*\{)') {
+                if ($wtJson -notmatch '"colorScheme"') {
+                    $wtJson = $wtJson -replace '("defaults"\s*:\s*\{)', "`$1`r`n        `"colorScheme`": `"Catppuccin Mocha`","
+                    $modified = $true
+                }
+                if ($wtJson -notmatch 'JetBrainsMono') {
                     $wtJson = $wtJson -replace '("defaults"\s*:\s*\{)', "`$1`r`n        `"font`": { `"face`": `"JetBrainsMono NF`" },"
                     $modified = $true
                 }
+            }
+
+            # 3. Add -NoLogo -ExecutionPolicy Bypass to powershell.exe if not present
+            if ($wtJson -match 'powershell\.exe' -and $wtJson -notmatch 'powershell\.exe -NoLogo') {
+                $wtJson = $wtJson -replace 'powershell\.exe', 'powershell.exe -NoLogo -ExecutionPolicy Bypass'
+                $modified = $true
             }
 
             if ($modified) {

@@ -33,13 +33,25 @@ Write-Host '   Catppuccin Mocha Terminal Uninstaller' -ForegroundColor Yellow
 Write-Host '===========================================================' -ForegroundColor Yellow
 
 $homeDir = $HOME
-$profileTargets = @(
-    (Join-Path $homeDir 'Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1'),
-    (Join-Path $homeDir 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1')
-)
+$docDirs = @(
+    (Join-Path $homeDir 'Documents'),
+    [Environment]::GetFolderPath('MyDocuments'),
+    [Environment]::GetFolderPath('Personal')
+) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+
+$profileTargets = [System.Collections.Generic.List[string]]::new()
+foreach ($d in $docDirs) {
+    $profileTargets.Add((Join-Path $d 'WindowsPowerShell\Microsoft.PowerShell_profile.ps1'))
+    $profileTargets.Add((Join-Path $d 'PowerShell\Microsoft.PowerShell_profile.ps1'))
+}
+if ($PROFILE) {
+    if ($PROFILE.CurrentUserCurrentHost) { $profileTargets.Add($PROFILE.CurrentUserCurrentHost) }
+    if ($PROFILE.CurrentUserAllHosts) { $profileTargets.Add($PROFILE.CurrentUserAllHosts) }
+}
+$uniqueProfileTargets = $profileTargets | Select-Object -Unique
 
 Write-Step 'Cleaning PowerShell profiles'
-foreach ($pPath in $profileTargets) {
+foreach ($pPath in $uniqueProfileTargets) {
     if (Test-Path -LiteralPath $pPath) {
         $existing = Get-Content -LiteralPath $pPath -Raw
         $cleaned = Remove-CatppuccinBlock $existing
@@ -56,17 +68,23 @@ if (Test-Path -LiteralPath $clinkLuaPath) {
     Write-Success "Removed $clinkLuaPath"
 }
 
-$clinkExeCandidates = @(
-    'C:\Program Files (x86)\clink\clink_x64.exe',
-    'C:\Program Files\clink\clink_x64.exe',
-    "$env:LOCALAPPDATA\Programs\clink\clink_x64.exe"
+$candidateDirs = @(
+    'C:\Program Files\clink',
+    'C:\Program Files (x86)\clink',
+    "$env:LOCALAPPDATA\Programs\clink"
 )
-foreach ($c in $clinkExeCandidates) {
-    if (Test-Path -LiteralPath $c) {
-        & $c autorun uninstall
-        Write-Success "Unregistered Clink autorun"
-        break
+$unregistered = $false
+foreach ($dir in $candidateDirs) {
+    foreach ($bin in @('clink_x64.exe', 'clink_arm64.exe', 'clink_x86.exe', 'clink.exe')) {
+        $p = Join-Path $dir $bin
+        if (Test-Path -LiteralPath $p) {
+            & $p autorun uninstall
+            Write-Success "Unregistered Clink autorun"
+            $unregistered = $true
+            break
+        }
     }
+    if ($unregistered) { break }
 }
 
 Write-Step 'Removing Catppuccin configuration files'
